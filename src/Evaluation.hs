@@ -14,7 +14,7 @@ eval (List [Atom "if", pred, conseq, alt]) =
      case result of
        Bool False -> eval alt
        Bool True -> eval conseq
-       _ -> throwError $ TypeMismatch "Bool" $ checkType pred
+       _ -> throwError $ TypeMismatch "Bool" pred
 eval (List (Atom func : args)) = mapM eval args >>= apply func
 eval form@(List (Atom "cond" : clauses)) =
   if null clauses
@@ -34,7 +34,7 @@ eval form@(List (Atom "case" : key : clauses)) =
     List ((List datums) : exprs) -> do
       result <- eval key
       equality <- mapM (\x -> eqv [result, x]) datums
-      if Boolean True `elem` equality
+      if Bool True `elem` equality
         then mapM eval exprs >>= return . last
         else eval $ List (Atom "case" : key : tail clauses)
     _ -> throwError $ BadSpecialForm "ill-formed case expression: " form
@@ -100,10 +100,10 @@ unpackNum :: LispVal -> ThrowsError Integer
 unpackNum (Number n) = return n
 unpackNum (String n) = let parsed = reads n :: [(Integer, String)] in
                          if null parsed
-                            then throwError $ TypeMismatch "number" $ String n
+                            then throwError $ TypeMismatch "Number" $ String n
                             else return $ fst $ parsed !! 0
 unpackNum (List [n]) = unpackNum n
-unpackNum notNum = throwError $ TypeMismatch "number" notNum
+unpackNum notNum = throwError $ TypeMismatch "Number" notNum
 
 symbolp, integerp, floatp, ratiop, complexp, stringp, boolp, listp, vectorp
   :: LispVal -> LispVal
@@ -143,11 +143,11 @@ unpackStr :: LispVal -> ThrowsError String
 unpackStr (String s) = return s
 unpackStr (Number s) = return $ show s
 unpackStr (Bool s) = return $ show s
-unpackStr notString = throwError $ TypeMismatch "String" $ checkType notString
+unpackStr notString = throwError $ TypeMismatch "String" notString
 
 unpackBool :: LispVal -> ThrowsError Bool
 unpackBool (Bool b) = return b
-unpackBool notBool = throwError $ TypeMismatch "Bool" $ checkType notBool
+unpackBool notBool = throwError $ TypeMismatch "Bool" notBool
 
 symbol2string, string2symbol :: LispVal -> LispVal
 symbol2string (Atom s) = String s
@@ -158,14 +158,14 @@ string2symbol _ = Atom ""
 car :: [LispVal] -> ThrowsError LispVal
 car [List (x : _)]         = return x
 car [DottedList (x : _) _] = return x
-car [badArg]                = throwError $ TypeMismatch "Pair" $ checkType badArg
+car [badArg]                = throwError $ TypeMismatch "Pair" badArg
 car badArgList              = throwError $ NumArgs 1 badArgList
 
 cdr :: [LispVal] -> ThrowsError LispVal
 cdr [List (_ : xs)]         = return $ List xs
 cdr [DottedList [_] x]      = return x
 cdr [DottedList (_ : xs) x] = return $ DottedList xs x
-cdr [badArg]                = throwError $ TypeMismatch "Pair" $ checkType badArg
+cdr [badArg]                = throwError $ TypeMismatch "Pair" badArg
 cdr badArgList              = throwError $ NumArgs 1 badArgList
 
 cons :: [LispVal] -> ThrowsError LispVal
@@ -216,7 +216,7 @@ equal badArgList = throwError $ NumArgs 2 badArgList
 
 stringLen :: [LispVal] -> ThrowsError LispVal
 stringLen [(String s)] = Right $ Number $ fromIntegral $ length s
-stringLen [notString] = throwError $ TypeMismatch "String" $ checkType notString
+stringLen [notString] = throwError $ TypeMismatch "String" notString
 stringLen badArgList = throwError $ NumArgs 1 badArgList
 
 stringRef :: [LispVal] -> ThrowsError LispVal
@@ -224,6 +224,6 @@ stringRef [(String s), (Number k)]
        | length s < k' + 1 = throwError $ Default "Out of bound error"
        | otherwise         = Right $ String $ [s !! k']
   where k' = fromIntegral k
-stringRef [(String s), notNum] = throwError $ TypeMismatch "Number" $ checkType notNum
-stringRef [notString, _] = throwError $ TypeMismatch "String" $ checkType notString
+stringRef [(String s), notNum] = throwError $ TypeMismatch "Number" notNum
+stringRef [notString, _] = throwError $ TypeMismatch "String" notString
 stringRef badArgList = throwError $ NumArgs 2 badArgList

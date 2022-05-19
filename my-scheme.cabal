@@ -25,11 +25,10 @@ source-repository head
 
 library
   exposed-modules:
-      Evaluation Parsing
-  other-modules:
-      Definitions
       Evaluation
       Parsing
+      Definitions
+  other-modules:
       Paths_my_scheme
   hs-source-dirs:
       src

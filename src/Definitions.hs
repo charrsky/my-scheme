@@ -63,16 +63,3 @@ trapError action = catchError action (return . show)
 
 extractValue :: ThrowsError a -> a
 extractValue (Right val) = val
-
-checkType :: LispVal -> String
-checkType (Atom _) = "Atom"
-checkType (List _) = "List"
-checkType (DottedList _ _) = "DottedList"
-checkType (Number _) = "Number"
-checkType (Bool _) = "Bool"
-checkType (Char _) = "Char"
-checkType (Float _) = "Float"
-checkType (Ratio _) = "Ratio"
-checkType (Complex _) = "Complex"
-checkType (Vector _) = "Vector"
-checkType _ = "List"

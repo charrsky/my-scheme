@@ -27,9 +27,12 @@ dependencies:
 
 library:
   source-dirs: src
-  exposed-modules: Evaluation
-                   Parsing
-  default-extensions: ExistentialQuantification
+  exposed-modules:
+  - Evaluation
+  - Parsing
+  - Definitions
+  default-extensions:
+  - ExistentialQuantification
 
 executables:
   my-scheme-exe:
